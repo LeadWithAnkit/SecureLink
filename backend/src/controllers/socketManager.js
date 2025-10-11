@@ -15,7 +15,7 @@ export const connectToSocket=(server)=>{
     });
      
     io.on("connection",(socket)=>{
-     
+      console.log("Something is connected");
         socket.on("join-call", (path)=>{
             if(connections[path]== undefined){
                 connections[path]=[]
@@ -25,11 +25,11 @@ export const connectToSocket=(server)=>{
             timeOnline[socket.id]= new Date();
 
            //checking all the path and their connections
-            for(let a=0; a<connections[path].length;i++){
-                io.to(connections[path][a]).emit("user-joined", socket.id);
+            for(let a=0; a<connections[path].length;a++){
+                io.to(connections[path][a]).emit("user-joined", socket.id, connections[path]);
             }
             if(messages[path]!== undefined){
-                for(let a=0; a<messages[path].length;i++){
+                for(let a=0; a<messages[path].length;a++){
                     io.to(socket.id).emit("chat-message", messages[path][a]['data'],
                         messages[path][a]["sender"], messages[path][a]['socket-id-sender'])
                 }
