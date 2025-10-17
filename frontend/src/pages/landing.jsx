@@ -1,8 +1,15 @@
 import React from 'react'
 import { Link } from "react-router-dom";
 import "../App.css";
+import { AuthContext } from '../contexts/AuthContext';
 
-export default function LandingPage({ user, onLogout }) {
+export default function LandingPage() {
+  const { userData, handleLogout, handleGuestLogin } = React.useContext(AuthContext);
+
+  const handleGuestAccess = () => {
+    handleGuestLogin();
+  };
+
   return (
     <div className='landingPageContainer'>
         <nav>
@@ -10,16 +17,18 @@ export default function LandingPage({ user, onLogout }) {
             <h2><img src='/logo.png' alt='logo' /> SecureLink</h2>
           </div>
           <div className='navlist'>
-            <p>Join as Guest</p>
-            {user ? (
+            {userData ? (
               <>
-                <p>Welcome, {user.name}</p>
-                <div role='button' onClick={onLogout}>
+                <p>Welcome, {userData.name}</p>
+                <div role='button' onClick={handleLogout}>
                   <p>Logout</p>
                 </div>
               </>
             ) : (
               <>
+                <div role='button' onClick={handleGuestAccess}>
+                  <p>Join as Guest</p>
+                </div>
                 <div role='button'>
                   <Link to="/auth">Login</Link>
                 </div>
@@ -34,7 +43,7 @@ export default function LandingPage({ user, onLogout }) {
             <h1><span style={{color:"magenta"}}>Connect</span> with your loved Ones</h1>
             <p>Cover your relation at distance by SecureLink</p>
             <div role='button'>
-              <Link to={user ? "/dashboard" : "/auth"}>Get Started</Link>
+              <Link to={userData ? "/home" : "/auth"}>Get Started</Link>
             </div>
           </div>
           <div>
@@ -44,7 +53,3 @@ export default function LandingPage({ user, onLogout }) {
     </div>
   )
 }
-
-//-> CSS to jsx
-//-> premade component ko modify karke use karna
-

@@ -1,60 +1,90 @@
-
-.landingPageContainer{
-    width: 100vw;
-    height: 100vh;
-    background: url("/background.jpg");
-    background-repeat: no-repeat;
-    background-size: cover;
-    color: white;
+.homeContainer {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.landingPageContainer nav{
-    padding-inline:1.2rem ;
-    padding-block: 1.5rem;
-    display: flex;  
-    justify-content: space-between; 
-     align-items: center;;
-}
-.landingPageContainer nav img{
-    height: 50px; /* fixed height for logo */
-    width: auto;
-}
-.landingPageContainer nav h2{
-    font-size: 1.7rem;
-    font-weight:500px;
-}
-.landingPageContainer .navlist{
+.homeMainContainer {
+    min-height: calc(100vh - 80px);
     display: flex;
-    gap: 1.4rem;
-    cursor:pointer;
+    flex-direction: column;
 }
 
-.landingMainContainer{
-    display: flex;
-    justify-content: space-between;
-    padding-inline: 3rem;
-    height: 80vh;
+.homeContent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
-
+    padding: 2rem 4rem;
+    flex-grow: 1;
+    gap: 4rem;
 }
 
-.landingMainContainer > div:nth-child(1){
-   font-size: 2.2rem;
+.homeTextSection {
+    text-align: left;
+    max-width: 600px;
 }
-.landingMainContainer > div:nth-child(1) div[role='button']{
-    background: rgb(75, 116, 237);
-    width: fit-content;
-    padding:1rem;
-    border-radius:20px ;
-    margin-top: 1.9rem;
-}
-.landingMainContainer > div:nth-child(1) div[role='button'] a{
-  text-decoration: none;
-  color: white;
-  font-size: 1.7rem;
-}
-.landingMainContainer > div:nth-child(2) img{
-   height: 70vh;
-    width: auto;
 
+.homeActionButtons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.homeImageSection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.homeMainImage {
+    max-width: 100%;
+    height: auto;
+    max-height: 500px;
+    border-radius: 10px;
+}
+
+.joinMeetingSection {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 20px 20px 0 0;
+    margin-top: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .homeContent {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 2rem 1rem;
+        gap: 2rem;
+    }
+    
+    .homeTextSection {
+        text-align: center;
+        max-width: 100%;
+    }
+    
+    .homeActionButtons {
+        justify-content: center;
+    }
+    
+    .navRight {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .homeActionButtons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .homeActionButtons .MuiButton-root {
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .joinMeetingSection .MuiBox-root {
+        padding: 2rem 1rem;
+    }
 }

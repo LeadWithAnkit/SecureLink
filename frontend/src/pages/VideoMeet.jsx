@@ -172,7 +172,6 @@ export default function VideoMeetComponent() {
                 tracks.forEach(track => track.stop())
             } catch (e) { console.log(e) }
 
-            //To BlackSilence 
             let blackSilence = (...args) => new MediaStream([black(...args), silence()])
             window.localStream = blackSilence()
             localVideoref.current.srcObject = window.localStream
@@ -204,6 +203,9 @@ export default function VideoMeetComponent() {
             } catch (e) { }
         }
     }
+
+
+
 
 
     let getDislayMediaSuccess = (stream) => {
@@ -277,7 +279,7 @@ export default function VideoMeetComponent() {
         socketRef.current.on('signal', gotMessageFromServer)
 
         socketRef.current.on('connect', () => {
-            socketRef.current.emit('join-call', window.location.href) //href this is url where we are 
+            socketRef.current.emit('join-call', window.location.href)
             socketIdRef.current = socketRef.current.id
 
             socketRef.current.on('chat-message', addMessage)

@@ -21,8 +21,8 @@ const login = async (req, res) => {
     const user = await User.findOne({ username });
     if (!user) {
       return res
-        .status(httpStatus.NOT_FOUND)
-        .json({ message: "User not found" });
+        .status(httpStatus.UNAUTHORIZED)
+        .json({ message: "Invalid credentials" });
     }
 
     // compare password
@@ -43,7 +43,7 @@ const login = async (req, res) => {
 
     // optionally save in DB
     user.token = token;
-     user.tokenExpiry = Date.now() + 60 * 60 * 1000;
+    user.tokenExpiry = Date.now() + 60 * 60 * 1000;
     await user.save();
 
     return res.status(httpStatus.OK).json({

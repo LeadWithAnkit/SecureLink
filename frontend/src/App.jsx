@@ -1,41 +1,36 @@
-import { useState, useEffect } from 'react'
-import LandingPage from './pages/landing'
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css'
+import { AuthProvider } from './contexts/AuthContext';
+import withAuth from './utils/withAuth';
+import Landing from './pages/landing';
 import Authentication from './pages/authentication';
-import VideoMeetComponent from './pages/VideoMeet';
+import Home from './pages/home';
+import VideoMeet from './pages/VideoMeet';
+import History from './pages/history';
+import './App.css';
+
+// Protected components
+const ProtectedHome = withAuth(Home);
+const ProtectedVideoMeet = withAuth(VideoMeet);
+const ProtectedHistory = withAuth(History);
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-  };
-
   return (
-    <div className='App'>
+    <AuthProvider>
       <Router>
-        <Routes>
-          <Route path='/' element={<LandingPage user={user} onLogout={handleLogout} />} />
-          <Route path='/auth' element={!user ? <Authentication /> : <Navigate to="/" />} />
-          <Route path='/dashboard' element={user ? <div>Dashboard - Welcome {user.name}</div> : <Navigate to="/auth" />} />
-          <Route path='/:url' element={<VideoMeetComponent />} />
-        </Routes>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<Authentication />} />
+            <Route path="/home" element={<ProtectedHome />} />
+            <Route path="/meet" element={<ProtectedVideoMeet />} />
+            <Route path="/history" element={<ProtectedHistory />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
       </Router>
-    </div>
-  )
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
