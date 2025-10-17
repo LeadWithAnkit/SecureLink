@@ -16,8 +16,8 @@ const ProtectedHistory = withAuth(History);
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="App">
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -28,8 +28,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

@@ -1,88 +1,79 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { AuthContext } from '../contexts/AuthContext'
+import React, { useContext, useEffect, useState } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Card from '@mui/material/Card';
-import Box from '@mui/material/Box';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import { Card, CardContent, IconButton, Typography, Snackbar, Alert } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 
-import { IconButton } from '@mui/material';
 export default function History() {
-
-
     const { getHistoryOfUser } = useContext(AuthContext);
+    const [meetings, setMeetings] = useState([]);
+    const [error, setError] = useState(''); // For Snackbar
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
-    const [meetings, setMeetings] = useState([])
-
-
-    const routeTo = useNavigate();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchHistory = async () => {
             try {
                 const history = await getHistoryOfUser();
                 setMeetings(history);
-            } catch {
-                // IMPLEMENT SNACKBAR
+            } catch (err) {
+                setError('Failed to fetch history');
+                setOpenSnackbar(true);
             }
-        }
-
+        };
         fetchHistory();
-    }, [])
+    }, [getHistoryOfUser]);
 
-    let formatDate = (dateString) => {
-
+    const formatDate = (dateString) => {
         const date = new Date(dateString);
         const day = date.getDate().toString().padStart(2, "0");
-        const month = (date.getMonth() + 1).toString().padStart(2, "0")
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
         const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
 
-        return `${day}/${month}/${year}`
-
-    }
+    const handleCloseSnackbar = () => {
+        setOpenSnackbar(false);
+    };
 
     return (
-        <div>
-
-            <IconButton onClick={() => {
-                routeTo("/home")
-            }}>
+        <div style={{ padding: '1rem' }}>
+            {/* Home button */}
+            <IconButton onClick={() => navigate("/home")}>
                 <HomeIcon />
-            </IconButton >
-            {
-                (meetings.length !== 0) ? meetings.map((e, i) => {
-                    return (
+            </IconButton>
 
-                        <>
+            {/* Meetings list */}
+            {meetings.length > 0 ? (
+                meetings.map((meeting, i) => (
+                    <Card key={i} variant="outlined" sx={{ marginBottom: 2 }}>
+                        <CardContent>
+                            <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                Code: {meeting.meetingCode}
+                            </Typography>
+                            <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                Date: {formatDate(meeting.date)}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                ))
+            ) : (
+                <Typography>No meeting history found.</Typography>
+            )}
 
-
-                            <Card key={i} variant="outlined">
-
-
-                                <CardContent>
-                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                        Code: {e.meetingCode}
-                                    </Typography>
-
-                                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                        Date: {formatDate(e.date)}
-                                    </Typography>
-
-                                </CardContent>
-
-
-                            </Card>
-
-
-                        </>
-                    )
-                }) : <></>
-
-            }
-
+            {/* Snackbar for errors */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={4000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+                    {error}
+                </Alert>
+            </Snackbar>
         </div>
-    )
+    );
 }
+

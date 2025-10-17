@@ -41,7 +41,7 @@ export default function LandingPage() {
         <div className="landingMainContainer">
           <div>
             <h1><span style={{color:"magenta"}}>Connect</span> with your loved Ones</h1>
-            <p>Cover your relation at distance by SecureLink</p>
+            <p>Your Loved Ones,Just a Click Away- SecureLink</p>
             <div role='button'>
               <Link to={userData ? "/home" : "/auth"}>Get Started</Link>
             </div>

@@ -1,98 +1,92 @@
 import axios from "axios";
 import httpStatus from "http-status";
-import { createContext, useContext, useState } from "react";
+import { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import server from "../environment";
 
-
+// Create the AuthContext
 export const AuthContext = createContext({});
 
+// Axios client
 const client = axios.create({
     baseURL: `${server}/api/v1/users`
-})
-
+});
 
 export const AuthProvider = ({ children }) => {
+    const [userData, setUserData] = useState(null);
 
-    const authContext = useContext(AuthContext);
+    const navigate = useNavigate(); // useNavigate hook
 
-
-    const [userData, setUserData] = useState(authContext);
-
-
-    const router = useNavigate();
-
+    // Register function
     const handleRegister = async (name, username, password) => {
         try {
-            let request = await client.post("/register", {
-                name: name,
-                username: username,
-                password: password
-            })
+            const response = await client.post("/register", {
+                name,
+                username,
+                password
+            });
 
-
-            if (request.status === httpStatus.CREATED) {
-                return request.data.message;
+            if (response.status === httpStatus.CREATED) {
+                return response.data.message;
             }
         } catch (err) {
             throw err;
         }
-    }
+    };
 
+    // Login function
     const handleLogin = async (username, password) => {
         try {
-            let request = await client.post("/login", {
-                username: username,
-                password: password
-            });
+            const response = await client.post("/login", { username, password });
 
-            console.log(username, password)
-            console.log(request.data)
-
-            if (request.status === httpStatus.OK) {
-                localStorage.setItem("token", request.data.token);
-                router("/home")
+            if (response.status === httpStatus.OK) {
+                localStorage.setItem("token", response.data.token);
+                setUserData(response.data.user || null); // optional: save user info
+                navigate("/home"); // navigate after login
             }
         } catch (err) {
             throw err;
         }
-    }
+    };
 
+    // Get user history
     const getHistoryOfUser = async () => {
         try {
-            let request = await client.get("/get_all_activity", {
-                params: {
-                    token: localStorage.getItem("token")
-                }
+            const response = await client.get("/get_all_activity", {
+                params: { token: localStorage.getItem("token") }
             });
-            return request.data
-        } catch
-         (err) {
+            return response.data;
+        } catch (err) {
             throw err;
         }
-    }
+    };
 
+    // Add to user history
     const addToUserHistory = async (meetingCode) => {
         try {
-            let request = await client.post("/add_to_activity", {
+            const response = await client.post("/add_to_activity", {
                 token: localStorage.getItem("token"),
                 meeting_code: meetingCode
             });
-            return request
-        } catch (e) {
-            throw e;
+            return response.data;
+        } catch (err) {
+            throw err;
         }
-    }
+    };
 
-
-    const data = {
-        userData, setUserData, addToUserHistory, getHistoryOfUser, handleRegister, handleLogin
-    }
+    // Context value
+    const contextValue = {
+        userData,
+        setUserData,
+        handleRegister,
+        handleLogin,
+        getHistoryOfUser,
+        addToUserHistory
+    };
 
     return (
-        <AuthContext.Provider value={data}>
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
-    )
-
-}
+    );
+};
