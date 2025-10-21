@@ -105,6 +105,58 @@
   border-radius: 20px;
 }
 
+.homeContainer {
+  width: 100vw;
+  height: 100vh;
+  background: url('/background2.jpg') no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+}
+
+.homeContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Dark overlay for better text readability */
+  z-index: 1;
+}
+
+.homeContent {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Update existing home styles */
+.navBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 20px;
+  padding-block: 10px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent nav */
+  backdrop-filter: blur(10px); /* Glass effect */
+  position: relative;
+  z-index: 3;
+}
+
+.meetContainer {
+  display: flex;
+  padding-inline: 20px;
+  height: calc(100vh - 80px);
+  gap: 10vw;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .meetContainer {

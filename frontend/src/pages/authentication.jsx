@@ -1,16 +1,13 @@
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { AuthContext } from '../contexts/AuthContext';
-import { Snackbar } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
 
 const defaultTheme = createTheme();
 
@@ -22,28 +19,51 @@ export default function Authentication() {
     const [message, setMessage] = React.useState("");
     const [formState, setFormState] = React.useState(0);
     const [open, setOpen] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
 
     const { handleRegister, handleLogin } = React.useContext(AuthContext);
 
+    // Test background image on component mount
+    React.useEffect(() => {
+        console.log("🖼️ Testing background image...");
+        const img = new Image();
+        img.src = '/background2.jpg';
+        img.onload = () => console.log("✅ Background image loaded successfully");
+        img.onerror = () => console.log("❌ Background image failed to load - check if file exists in public folder");
+    }, []);
+
     const handleAuth = async () => {
+        if (!username || !password) {
+            setError("Username and password are required");
+            return;
+        }
+
+        if (formState === 1 && !name) {
+            setError("Name is required for registration");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
         try {
             if (formState === 0) {
                 await handleLogin(username, password);
-            }
-            if (formState === 1) {
+            } else if (formState === 1) {
                 let result = await handleRegister(name, username, password);
-                console.log(result);
-                setUsername("");
-                setMessage(result);
+                setMessage(result || "Registration successful!");
                 setOpen(true);
                 setError("");
-                setFormState(0);
+                setName("");
+                setUsername("");
                 setPassword("");
+                setFormState(0);
             }
         } catch (err) {
-            console.log(err);
-            let errorMessage = err.response?.data?.message || "An error occurred";
-            setError(errorMessage);
+            console.error("Auth error:", err);
+            setError(err.message || "An error occurred");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -51,29 +71,49 @@ export default function Authentication() {
         setOpen(false);
     };
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleAuth();
+        }
+    };
+
     return (
         <ThemeProvider theme={defaultTheme}>
-            <Grid container component="main" sx={{ height: '100vh' }}>
-                <CssBaseline />
-                <Grid
-                    item
-                    xs={false}
-                    sm={4}
-                    md={7}
-                    sx={{
-                        backgroundImage: "url('/background2.jpg')", 
-                        backgroundRepeat: 'no-repeat',
-                        backgroundColor: (t) =>
-                            t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                    }}
-                />
-                <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+            <div style={{
+                display: 'flex',
+                height: '100vh',
+                background: "url('/background2.jpg') no-repeat center center fixed",
+                backgroundSize: 'cover',
+                position: 'relative'
+            }}>
+                {/* Dark overlay for better readability */}
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)'
+                }}></div>
+                
+                {/* Left spacer - for larger screens */}
+                <div style={{ 
+                    flex: 1,
+                    display: { xs: 'none', md: 'block' } 
+                }}></div>
+                
+                {/* Right form panel */}
+                <div style={{
+                    flex: '0 0 500px',
+                    background: 'white',
+                    padding: '2rem',
+                    boxShadow: '-2px 0 10px rgba(0,0,0,0.1)',
+                    position: 'relative',
+                    zIndex: 2,
+                    overflowY: 'auto'
+                }}>
                     <Box
                         sx={{
-                            my: 8,
-                            mx: 4,
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -83,21 +123,24 @@ export default function Authentication() {
                             <LockOutlinedIcon />
                         </Avatar>
 
-                        <Typography component="h1" variant="h5">
+                        <Typography component="h1" variant="h5" gutterBottom>
                             {formState === 0 ? "Sign In" : "Sign Up"}
                         </Typography>
 
-                        <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ marginBottom: '1rem', display: 'flex', gap: '10px' }}>
                             <Button 
                                 variant={formState === 0 ? "contained" : "outlined"} 
                                 onClick={() => { setFormState(0); setError(""); }}
-                                sx={{ mr: 1 }}
+                                disabled={loading}
+                                fullWidth
                             >
                                 Sign In
                             </Button>
                             <Button 
                                 variant={formState === 1 ? "contained" : "outlined"} 
                                 onClick={() => { setFormState(1); setError(""); }}
+                                disabled={loading}
+                                fullWidth
                             >
                                 Sign Up
                             </Button>
@@ -115,6 +158,8 @@ export default function Authentication() {
                                     value={name}
                                     autoFocus
                                     onChange={(e) => setName(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    disabled={loading}
                                 />
                             )}
 
@@ -128,6 +173,8 @@ export default function Authentication() {
                                 value={username}
                                 autoFocus={formState === 0}
                                 onChange={(e) => setUsername(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                disabled={loading}
                             />
                             <TextField
                                 margin="normal"
@@ -138,13 +185,15 @@ export default function Authentication() {
                                 value={password}
                                 type="password"
                                 onChange={(e) => setPassword(e.target.value)}
+                                onKeyPress={handleKeyPress}
                                 id="password"
+                                disabled={loading}
                             />
 
                             {error && (
-                                <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                                <Alert severity="error" sx={{ mt: 1 }}>
                                     {error}
-                                </Typography>
+                                </Alert>
                             )}
 
                             <Button
@@ -153,20 +202,26 @@ export default function Authentication() {
                                 variant="contained"
                                 sx={{ mt: 3, mb: 2 }}
                                 onClick={handleAuth}
+                                disabled={loading}
+                                size="large"
                             >
-                                {formState === 0 ? "Login" : "Register"}
+                                {loading ? "Processing..." : (formState === 0 ? "Login" : "Register")}
                             </Button>
                         </Box>
                     </Box>
-                </Grid>
-            </Grid>
+                </div>
+            </div>
 
             <Snackbar
                 open={open}
                 autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
-                message={message}
-            />
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+                    {message}
+                </Alert>
+            </Snackbar>
         </ThemeProvider>
     );
 }

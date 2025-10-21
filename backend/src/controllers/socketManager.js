@@ -1,99 +1,157 @@
-import { Server } from "socket.io";
+import { Server } from "socket.io"
 
-let connections ={}
+let connections = {}
 let messages = {}
-let timeOnline={}
+let timeOnline = {}
+let userRooms = {} // Track which room each user is in
 
-export const connectToSocket=(server)=>{
-    const io= new Server(server,{
-        cors:{
-            origin:"*",
-            methods:["GET","POST"],
-            allowedHeaders:["*"],
-            credentials:true
+export const connectToSocket = (server) => {
+    const io = new Server(server, {
+        cors: {
+            origin: "*",
+            methods: ["GET", "POST"],
+            allowedHeaders: ["*"],
+            credentials: true
         }
     });
-     
-    io.on("connection",(socket)=>{
-      console.log("Something is connected");
-        socket.on("join-call", (path)=>{
-            if(connections[path]== undefined){
-                connections[path]=[]
-            }
-            connections[path].push(socket.id)
 
-            timeOnline[socket.id]= new Date();
+    io.on("connection", (socket) => {
+        console.log("✅ User connected:", socket.id);
 
-           //checking all the path and their connections
-            for(let a=0; a<connections[path].length;a++){
-                io.to(connections[path][a]).emit("user-joined", socket.id, connections[path]);
+        socket.on("join-call", (path) => {
+            console.log(" User joining room:", path, "Socket ID:", socket.id);
+
+            // Leave any previous room
+            if (userRooms[socket.id]) {
+                socket.leave(userRooms[socket.id]);
             }
-            if(messages[path]!== undefined){
-                for(let a=0; a<messages[path].length;a++){
-                    io.to(socket.id).emit("chat-message", messages[path][a]['data'],
-                        messages[path][a]["sender"], messages[path][a]['socket-id-sender'])
+
+            // Join new room
+            socket.join(path);
+            userRooms[socket.id] = path;
+
+            // Initialize room arrays if they don't exist
+            if (connections[path] === undefined) {
+                connections[path] = [];
+            }
+            if (messages[path] === undefined) {
+                messages[path] = [];
+            }
+
+            // Add user to room connections
+            connections[path].push(socket.id);
+            timeOnline[socket.id] = new Date();
+
+            console.log(" Room", path, "users:", connections[path]);
+
+            // Notify all users in the room about the new user
+            socket.to(path).emit("user-joined", socket.id, connections[path]);
+            
+            // Send existing users to the new user
+            socket.emit("existing-users", connections[path]);
+
+            // Send previous messages to the new user
+            if (messages[path].length > 0) {
+                console.log(" Sending", messages[path].length, "previous messages to new user");
+                messages[path].forEach((msg) => {
+                    socket.emit("chat-message", {
+                        message: msg.data,
+                        sender: msg.sender,
+                        timestamp: msg.timestamp
+                    });
+                });
+            }
+
+        });
+
+        socket.on("signal", (toId, message) => {
+            console.log("📡 Signal from", socket.id, "to", toId);
+            io.to(toId).emit("signal", socket.id, message);
+        });
+
+        socket.on("chat-message", (messageData) => {
+            console.log(" Chat message from", socket.id, ":", messageData);
+
+            const room = userRooms[socket.id];
+            
+            if (!room) {
+                console.log(" User not in any room");
+                return;
+            }
+
+            if (!messageData || !messageData.message || !messageData.sender) {
+                console.log(" Invalid message data:", messageData);
+                return;
+            }
+
+            // Create message object
+            const messageObj = {
+                sender: messageData.sender,
+                data: messageData.message,
+                timestamp: new Date().toISOString(),
+                socketId: socket.id
+            };
+
+            // Store message
+            messages[room].push(messageObj);
+
+            // Keep only last 100 messages to prevent memory issues
+            if (messages[room].length > 100) {
+                messages[room] = messages[room].slice(-100);
+            }
+
+            console.log("💾 Stored message in room", room, "Total messages:", messages[room].length);
+
+            // Broadcast to all users in the room (including sender for confirmation)
+            const broadcastData = {
+                message: messageData.message,
+                sender: messageData.sender,
+                timestamp: messageObj.timestamp
+            };
+
+            io.to(room).emit("chat-message", broadcastData);
+            console.log(" Broadcasted message to room", room);
+
+        });
+
+        socket.on("disconnect", (reason) => {
+            console.log("User disconnected:", socket.id, "Reason:", reason);
+
+            const room = userRooms[socket.id];
+            
+            if (room && connections[room]) {
+                // Remove user from connections
+                const index = connections[room].indexOf(socket.id);
+                if (index > -1) {
+                    connections[room].splice(index, 1);
+                }
+
+                console.log("User removed from room", room, "Remaining users:", connections[room]);
+
+                // Notify other users in the room
+                socket.to(room).emit("user-left", socket.id);
+
+                // Clean up empty rooms
+                if (connections[room].length === 0) {
+                    console.log(" Cleaning up empty room:", room);
+                    delete connections[room];
+                    // Keep messages for the room for a while, but you might want to clean them up too
+                    // delete messages[room];
                 }
             }
-    
-        })
-        socket.on("signal", (toId,message)=>{
-            io.to(toId).emit("signal", socket.id,message);
-        })
-        //access the emit message
-        //check same room me bheje msg
-        socket.on("chat-message", (data, sender)=>{
-             const[matchingRoom, found]=Object.entries(connections)
-             .reduce(([room,isFound], [roomKey,roomValue])=>
-                {
-                if(!isFound && roomValue.includes(socket.id)){
-                    return [roomKey,true];
-                }
-                return [room,isFound];
 
-             },['',false]);
+            // Clean up user room tracking
+            delete userRooms[socket.id];
+            delete timeOnline[socket.id];
 
-             if(found== true){
-                if(messages[matchingRoom]==undefined){
-                    messages[matchingRoom]=[]
-                }
-                messages[matchingRoom].push({'sender': sender,"data":data,"socket-id-sender":socket.id})
-                console.log("message",matchingRoom,":", sender, data)
-                connections[matchingRoom].forEach((elem)=>{
-                    io.to(elem).emit("chat-message", data,sender,socket.id)
-                })
-             }
-        })
-        socket.on("disconnect",()=>{
+        });
 
-            var diffTime= Math.abs(timeOnline[socket.id]-new Date())
-            //diff approach to check
-            var key
-           //for making the deep copy
-           //key is matching room and values are all connections(v)
-           for (const [k, v] of Object.entries(connections)) {
-              //for room and its  Each connection
-              for(let a=0;a<v.length;++a){
-                //jo doing disconnect (v) same as socket.id then remove
-                if(v[a]==socket.id){
-                    key=k;
-                    for(let a=0; a<connections[key].length;++a){
-                        io.to(connections[key][a]).emit('user-left', socket.id)
-                    }
-                   var index = connections[key].indexOf(socket.id)
+        // Handle connection errors
+        socket.on("connect_error", (error) => {
+            console.error("Socket connection error:", error);
+        });
 
-                   connections[key].splice(index,1)
-                //if current room is empty then drop it
-                //like a check
-                   if(connections[key].length==0){
-                    delete connections[key];
-                   }
-                }
-              }
-            }
-          //cleanup socket online
-          delete timeOnline[socket.id];
-        })
-    }) 
+    });
+
     return io;
-}
-
+};
