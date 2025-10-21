@@ -1,55 +1,53 @@
 import React from 'react'
-import { Link } from "react-router-dom";
-import "../App.css";
-import { AuthContext } from '../contexts/AuthContext';
-
+import "../App.css"
+import { Link, useNavigate } from 'react-router-dom'
 export default function LandingPage() {
-  const { userData, handleLogout, handleGuestLogin } = React.useContext(AuthContext);
 
-  const handleGuestAccess = () => {
-    handleGuestLogin();
-  };
 
-  return (
-    <div className='landingPageContainer'>
-        <nav>
-          <div className='navHeader'>
-            <h2><img src='/logo.png' alt='logo' /> SecureLink</h2>
-          </div>
-          <div className='navlist'>
-            {userData ? (
-              <>
-                <p>Welcome, {userData.name}</p>
-                <div role='button' onClick={handleLogout}>
-                  <p>Logout</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div role='button' onClick={handleGuestAccess}>
-                  <p>Join as Guest</p>
-                </div>
-                <div role='button'>
-                  <Link to="/auth">Login</Link>
-                </div>
-              </>
-            )}
-          </div>
-        </nav>
+    const router = useNavigate();
 
-        {/* Rest of your landing page content */}
-        <div className="landingMainContainer">
-          <div>
-            <h1><span style={{color:"magenta"}}>Connect</span> with your loved Ones</h1>
-            <p>Your Loved Ones,Just a Click Away- SecureLink</p>
-            <div role='button'>
-              <Link to={userData ? "/home" : "/auth"}>Get Started</Link>
+    return (
+        <div className='landingPageContainer'>
+            <nav>
+                <div className='navHeader'>
+                    <h2>Apna Video Call</h2>
+                </div>
+                <div className='navlist'>
+                    <p onClick={() => {
+                        router("/aljk23")
+                    }}>Join as Guest</p>
+                    <p onClick={() => {
+                        router("/auth")
+
+                    }}>Register</p>
+                    <div onClick={() => {
+                        router("/auth")
+
+                    }} role='button'>
+                        <p>Login</p>
+                    </div>
+                </div>
+            </nav>
+
+
+            <div className="landingMainContainer">
+                <div>
+                    <h1><span style={{ color: "#FF9839" }}>Connect</span> with your loved Ones</h1>
+
+                    <p>Cover a distance by Apna Video Call</p>
+                    <div role='button'>
+                        <Link to={"/auth"}>Get Started</Link>
+                    </div>
+                </div>
+                <div>
+
+                    <img src="/mobile.png" alt="" />
+
+                </div>
             </div>
-          </div>
-          <div>
-            <img src="/mobile.png" alt="image" />
-          </div>
+
+
+
         </div>
-    </div>
-  )
+    )
 }

@@ -1,59 +1,19 @@
-/* index.css → Clean Reset + Base Setup */
-
-/* Box sizing reset */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-/* Remove default margin & padding */
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-/* Set default body styles */
-html, body {
-  height: 100%;
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #fff; /* start clean */
-  color: #000;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Links */
-a {
-  text-decoration: none;
-  color: inherit;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
-
-/* Lists */
-ul, ol {
-  list-style: none;
-}
-
-/* Images & media */
-img, picture, video, canvas, svg {
-  display: block;
-  max-width: 100%;
-}
-
-/* Form elements */
-button, input, textarea, select {
-  font: inherit;
-  border: none;
-  outline: none;
-  background: none;
-}
-
-/* Accessibility - reduce motion */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
