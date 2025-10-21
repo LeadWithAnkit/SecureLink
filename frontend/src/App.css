@@ -1,10 +1,10 @@
 .landingPageContainer {
   width: 100vw;
   height: 100vh;
-  background: url("/background.png");
+  background: url("/background.jpg");
   background-repeat: no-repeat;
   background-size: cover;
-  color: rgb(71, 52, 52);
+  color: black;
 }
 
 .landingPageContainer nav {
@@ -20,6 +20,12 @@
   font-weight: 500;
 }
 
+.landingPageContainer nav .navHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+} 
+
 .landingPageContainer nav .navlist {
   display: flex;
   gap: 1.6rem;
@@ -30,7 +36,7 @@
   display: flex;
   justify-content: space-between;
   padding-inline: 3rem;
-  height: 80vh;
+  height: 75vh;
   align-items: center;
 }
 
@@ -39,7 +45,7 @@
 }
 
 .landingMainContainer>div:nth-child(1) div[role='button'] {
-  background: #D97500;
+  background: #f5861fed;
   width: fit-content;
   padding: 1rem;
   border-radius: 20px;
@@ -49,7 +55,7 @@
 
 .landingMainContainer>div:nth-child(1) div[role='button'] a {
   text-decoration: none;
-  color: rgb(49, 48, 48);
+  color: rgb(6, 6, 6);
   font-size: 1.7rem;
 }
 
