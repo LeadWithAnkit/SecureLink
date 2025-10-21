@@ -341,19 +341,18 @@ export default function VideoMeetComponent() {
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 height: '100vh',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                backgroundImage: "url('/background2.jpg')",
                 color: 'white'
             }}>
                 <div style={{
-                    background: 'rgba(255,255,255,0.1)',
+                  
                     padding: '40px',
                     borderRadius: '20px',
-                    backdropFilter: 'blur(10px)',
                     textAlign: 'center',
                     maxWidth: '400px',
                     width: '90%'
                 }}>
-                    <h1 style={{ marginBottom: '10px', fontSize: '2.5rem' }}>APNA</h1>
+                    <h1 style={{ marginBottom: '10px', fontSize: '2.5rem' }}>SecureLink</h1>
                     <h2 style={{ marginBottom: '30px', fontWeight: '300' }}>Video Meeting</h2>
                     
                     <TextField 
