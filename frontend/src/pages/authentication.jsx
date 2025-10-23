@@ -25,11 +25,11 @@ export default function Authentication() {
 
     // Test background image on component mount
     React.useEffect(() => {
-        console.log("🖼️ Testing background image...");
+        console.log("Testing background image...");
         const img = new Image();
         img.src = '/background2.jpg';
-        img.onload = () => console.log("✅ Background image loaded successfully");
-        img.onerror = () => console.log("❌ Background image failed to load - check if file exists in public folder");
+        img.onload = () => console.log("Background image loaded successfully");
+        img.onerror = () => console.log("Background image failed to load - check if file exists in public folder");
     }, []);
 
     const handleAuth = async () => {

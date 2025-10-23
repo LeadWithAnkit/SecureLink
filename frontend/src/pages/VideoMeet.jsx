@@ -65,17 +65,17 @@ export default function VideoMeetComponent() {
     };
 
     const connectToSocket = (stream) => {
-        console.log("🔄 Connecting to socket server...");
+        console.log(" Connecting to socket server...");
         socketRef.current = io(server_url);
 
         socketRef.current.on('connect', () => {
-            console.log("✅ Socket connected");
+            console.log("Socket connected");
             socketRef.current.emit('join-call', roomId);
         });
 
         // Handle chat messages
         socketRef.current.on('chat-message', (data) => {
-            console.log("💬 Message received:", data);
+            console.log(" Message received:", data);
             setMessages(prev => [...prev, data]);
             if (!showChat) {
                 setNewMessages(prev => prev + 1);
@@ -102,7 +102,7 @@ export default function VideoMeetComponent() {
 
         // Handle user left
         socketRef.current.on('user-left', (userId) => {
-            console.log("👋 User left:", userId);
+            console.log(" User left:", userId);
             if (peersRef.current[userId]) {
                 peersRef.current[userId].close();
                 delete peersRef.current[userId];
@@ -116,18 +116,18 @@ export default function VideoMeetComponent() {
 
         // Handle WebRTC signals
         socketRef.current.on('signal', (fromId, signalData) => {
-            console.log("📡 Signal received from:", fromId);
+            console.log("Signal received from:", fromId);
             handleSignal(fromId, signalData, stream);
         });
 
         socketRef.current.on('connect_error', (error) => {
-            console.error("❌ Socket connection error:", error);
+            console.error("Socket connection error:", error);
         });
     };
 
     // Create peer connection
     const createPeerConnection = (userId, stream, isOffer) => {
-        console.log("🔗 Creating peer connection with:", userId);
+        console.log(" Creating peer connection with:", userId);
         
         const peer = new RTCPeerConnection(peerConfig);
         
@@ -138,7 +138,7 @@ export default function VideoMeetComponent() {
 
         // Handle incoming remote stream
         peer.ontrack = (event) => {
-            console.log("🎥 Received remote track from:", userId);
+            console.log("Received remote track from:", userId);
             if (event.streams && event.streams[0]) {
                 setRemoteStreams(prev => ({
                     ...prev,
@@ -194,7 +194,7 @@ export default function VideoMeetComponent() {
                 await peer.addIceCandidate(new RTCIceCandidate(signal.ice));
             }
         } catch (error) {
-            console.error("❌ Error handling signal:", error);
+            console.error("Error handling signal:", error);
         }
     };
 

@@ -3,7 +3,7 @@ import { Server } from "socket.io"
 let connections = {}
 let messages = {}
 let timeOnline = {}
-let userRooms = {} // Track which room each user is in
+let userRooms = {} 
 
 export const connectToSocket = (server) => {
     const io = new Server(server, {
@@ -21,16 +21,15 @@ export const connectToSocket = (server) => {
         socket.on("join-call", (path) => {
             console.log(" User joining room:", path, "Socket ID:", socket.id);
 
-            // Leave any previous room
+           
             if (userRooms[socket.id]) {
                 socket.leave(userRooms[socket.id]);
             }
 
-            // Join new room
             socket.join(path);
             userRooms[socket.id] = path;
 
-            // Initialize room arrays if they don't exist
+          //make new room
             if (connections[path] === undefined) {
                 connections[path] = [];
             }
@@ -38,19 +37,16 @@ export const connectToSocket = (server) => {
                 messages[path] = [];
             }
 
-            // Add user to room connections
+          
             connections[path].push(socket.id);
             timeOnline[socket.id] = new Date();
 
             console.log(" Room", path, "users:", connections[path]);
 
-            // Notify all users in the room about the new user
             socket.to(path).emit("user-joined", socket.id, connections[path]);
-            
-            // Send existing users to the new user
+
             socket.emit("existing-users", connections[path]);
 
-            // Send previous messages to the new user
             if (messages[path].length > 0) {
                 console.log(" Sending", messages[path].length, "previous messages to new user");
                 messages[path].forEach((msg) => {
@@ -65,7 +61,7 @@ export const connectToSocket = (server) => {
         });
 
         socket.on("signal", (toId, message) => {
-            console.log("📡 Signal from", socket.id, "to", toId);
+            console.log("Signal from", socket.id, "to", toId);
             io.to(toId).emit("signal", socket.id, message);
         });
 
@@ -100,9 +96,8 @@ export const connectToSocket = (server) => {
                 messages[room] = messages[room].slice(-100);
             }
 
-            console.log("💾 Stored message in room", room, "Total messages:", messages[room].length);
+            console.log("Stored message in room", room, "Total messages:", messages[room].length);
 
-            // Broadcast to all users in the room (including sender for confirmation)
             const broadcastData = {
                 message: messageData.message,
                 sender: messageData.sender,
@@ -135,8 +130,7 @@ export const connectToSocket = (server) => {
                 if (connections[room].length === 0) {
                     console.log(" Cleaning up empty room:", room);
                     delete connections[room];
-                    // Keep messages for the room for a while, but you might want to clean them up too
-                    // delete messages[room];
+
                 }
             }
 

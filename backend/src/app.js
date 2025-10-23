@@ -43,7 +43,7 @@ const start = async () => {
         console.log(`Mongo connected db host: ${connectionDb.connection.host}`);
         
         server.listen(PORT, () => {
-            console.log(`🚀 Server listening on port ${PORT}`);
+            console.log(`Server listening on port ${PORT}`);
         });
     } catch (error) {
         console.error("Failed to start server:", error);
