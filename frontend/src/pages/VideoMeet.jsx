@@ -171,7 +171,7 @@ export default function VideoMeetComponent() {
             await peer.setLocalDescription(offer);
             socketRef.current.emit('signal', userId, JSON.stringify({ sdp: peer.localDescription }));
         } catch (error) {
-            console.error("❌ Error creating offer:", error);
+            console.error("Error creating offer:", error);
         }
     };
 
@@ -410,7 +410,7 @@ export default function VideoMeetComponent() {
                 borderBottom: '1px solid #444'
             }}>
                 <div style={{ fontSize: '18px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span>APNA Meeting</span>
+                    <span>SecureLink</span>
                     <div style={{ 
                         fontSize: '12px', 
                         background: '#444', 
