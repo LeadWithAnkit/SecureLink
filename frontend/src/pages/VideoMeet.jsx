@@ -332,6 +332,15 @@ export default function VideoMeetComponent() {
     };
 
     const remoteUsers = Object.entries(remoteStreams);
+    // Ensure local video plays when stream is ready
+     useEffect(() => {
+         if (localVideoRef.current && localStream) {
+             localVideoRef.current.srcObject = localStream;
+             localVideoRef.current
+                 .play()
+                 .catch(err => console.warn("Autoplay prevented:", err));
+         }
+     }, [localStream]);
 
     if (askForUsername) {
         return (
