@@ -54,9 +54,6 @@ export default function VideoMeetComponent() {
             });
             
             setLocalStream(stream);
-            if (localVideoRef.current) {
-                localVideoRef.current.srcObject = stream;
-            }
             setAskForUsername(false); //firstset false, then stream user video
             connectToSocket(stream);
             
