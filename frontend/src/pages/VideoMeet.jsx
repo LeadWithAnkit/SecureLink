@@ -57,9 +57,9 @@ export default function VideoMeetComponent() {
             if (localVideoRef.current) {
                 localVideoRef.current.srcObject = stream;
             }
-
+            setAskForUsername(false); //firstset false, then stream user video
             connectToSocket(stream);
-            setAskForUsername(false);
+            
             
         } catch (error) {
             console.error("Error accessing camera/microphone:", error);
