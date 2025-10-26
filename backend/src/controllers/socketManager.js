@@ -18,8 +18,8 @@ export const connectToSocket = (server) => {
     io.on("connection", (socket) => {
         console.log(" User connected:", socket.id);
 
-        socket.on("join-call", (roomId) => {
-            console.log(" User joining room:", roomId, "Socket ID:", socket.id);
+        socket.on("join-call", (roomId, username) => {
+            console.log(" User joining room:", roomId, "Socket ID:", socket.id, "Username:", username);
 
             // Validate room ID
             if (!roomId || roomId.trim() === "") {
@@ -70,8 +70,8 @@ export const connectToSocket = (server) => {
 
             console.log("Room", roomId, "users:", connections[roomId]);
 
-            // Notify all users in the room about the new user
-            socket.to(roomId).emit("user-joined", socket.id, connections[roomId], roomId);
+            // Notify all users in the room about the new user (with username)
+            socket.to(roomId).emit("user-joined", socket.id, username, connections[roomId], roomId);
             
             // Send existing users to the new user
             socket.emit("existing-users", connections[roomId], roomId);
