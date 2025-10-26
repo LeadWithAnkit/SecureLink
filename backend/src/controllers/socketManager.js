@@ -16,7 +16,7 @@ export const connectToSocket = (server) => {
     });
 
     io.on("connection", (socket) => {
-        console.log("✅ User connected:", socket.id);
+        console.log(" User connected:", socket.id);
 
         socket.on("join-call", (roomId) => {
             console.log(" User joining room:", roomId, "Socket ID:", socket.id);

@@ -17,7 +17,15 @@ const server_url = server;
 
 const peerConfig = {
     iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
+        // Keep your existing STUN
+        { urls: "stun:stun.l.google.com:19302" },
+        
+        // Add just ONE reliable TURN server
+        {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject"
+        }
     ]
 };
 
