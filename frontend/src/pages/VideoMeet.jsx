@@ -17,10 +17,7 @@ const server_url = server;
 
 const peerConfig = {
     iceServers: [
-        // Keep your existing STUN
         { urls: "stun:stun.l.google.com:19302" },
-        
-        // Add just ONE reliable TURN server
         {
             urls: "turn:openrelay.metered.ca:80",
             username: "openrelayproject",
@@ -35,7 +32,6 @@ export default function VideoMeetComponent() {
     
     const socketRef = useRef();
     const localVideoRef = useRef();
-    const remoteVideoRefs = useRef({});
     
     const [username, setUsername] = useState("");
     const [meetingCode, setMeetingCode] = useState(meetingId || "");
@@ -63,17 +59,11 @@ export default function VideoMeetComponent() {
     };
 
     // Create new meeting
-const createNewMeeting = () => {
-    // Check if user is guest
-    if (isGuest) {
-        alert("Please login to create new meetings");
-        return; // Stop execution
-    }
-    
-    const newCode = generateMeetingCode();
-    setMeetingCode(newCode);
-    navigate(`/meet/${newCode}`);
-};
+    const createNewMeeting = () => {
+        const newCode = generateMeetingCode();
+        setMeetingCode(newCode);
+        navigate(`/meet/${newCode}`);
+    };
 
     // Join existing meeting
     const joinMeeting = async () => {
@@ -107,30 +97,22 @@ const createNewMeeting = () => {
         socketRef.current = io(server_url);
 
         socketRef.current.on('connect', () => {
-            console.log(" Socket connected to room:", meetingCode);
+            console.log("Socket connected with ID:", socketRef.current.id);
             setConnectionStatus("connected");
-            socketRef.current.emit('join-call', meetingCode);
+            socketRef.current.emit('join-call', meetingCode, username);
         });
 
-        // Room validation handler
-        socketRef.current.on('room-not-found', (roomId) => {
-            console.error("Room not found:", roomId);
-            alert(`Meeting room "${roomId}" not found! Please check the meeting code.`);
-            setConnectionStatus("error");
-            endCall();
-        });
-
-        // User joined handler
-        socketRef.current.on('user-joined', (userId, users, room) => {
-            console.log(" User joined room:", room, "User:", userId);
+        // User joined handler - ONLY connect to OTHER users
+        socketRef.current.on('user-joined', (userId, userName, users, room) => {
+            console.log("User joined:", userName, "ID:", userId);
             if (userId !== socketRef.current.id) {
                 createPeerConnection(userId, stream, true);
             }
         });
 
-        // Existing users handler
+        // Existing users handler - ONLY connect to OTHER users
         socketRef.current.on('existing-users', (users, room) => {
-            console.log("Existing users in room:", room, users);
+            console.log("Existing users:", users);
             users.forEach(userId => {
                 if (userId !== socketRef.current.id && !peersRef.current[userId]) {
                     createPeerConnection(userId, stream, false);
@@ -140,7 +122,7 @@ const createNewMeeting = () => {
 
         // User left handler
         socketRef.current.on('user-left', (userId, room) => {
-            console.log("User left room:", room, "User:", userId);
+            console.log("User left:", userId);
             if (peersRef.current[userId]) {
                 peersRef.current[userId].close();
                 delete peersRef.current[userId];
@@ -154,17 +136,17 @@ const createNewMeeting = () => {
 
         // Chat messages handler
         socketRef.current.on('chat-message', (data) => {
-            console.log(" Message received in room:", data.roomId, data);
             setMessages(prev => [...prev, data]);
             if (!showChat) {
                 setNewMessages(prev => prev + 1);
             }
         });
 
-        // WebRTC signals handler
+        // WebRTC signals handler - ONLY handle from OTHER users
         socketRef.current.on('signal', (fromId, signalData, room) => {
-            console.log("Signal in room:", room, "from:", fromId);
-            handleSignal(fromId, signalData, stream);
+            if (fromId !== socketRef.current.id) {
+                handleSignal(fromId, signalData, stream);
+            }
         });
 
         socketRef.current.on('connect_error', (error) => {
@@ -175,16 +157,18 @@ const createNewMeeting = () => {
 
     // Create peer connection
     const createPeerConnection = (userId, stream, isOffer) => {
-        console.log(" Creating peer connection in room:", meetingCode);
+        console.log("Creating peer connection with:", userId, "isOffer:", isOffer);
         
         const peer = new RTCPeerConnection(peerConfig);
         
+        // Add all tracks to connection
         stream.getTracks().forEach(track => {
             peer.addTrack(track, stream);
         });
 
+        // Handle incoming remote stream
         peer.ontrack = (event) => {
-            console.log(" Received remote track in room:", meetingCode);
+            console.log("Received remote track from:", userId);
             if (event.streams && event.streams[0]) {
                 setRemoteStreams(prev => ({
                     ...prev,
@@ -193,6 +177,7 @@ const createNewMeeting = () => {
             }
         };
 
+        // Send ICE candidates to other peer
         peer.onicecandidate = (event) => {
             if (event.candidate) {
                 socketRef.current.emit('signal', userId, JSON.stringify({ ice: event.candidate }), meetingCode);
@@ -212,7 +197,7 @@ const createNewMeeting = () => {
             await peer.setLocalDescription(offer);
             socketRef.current.emit('signal', userId, JSON.stringify({ sdp: peer.localDescription }), meetingCode);
         } catch (error) {
-            console.error(" Error creating offer:", error);
+            console.error("Error creating offer:", error);
         }
     };
 
@@ -238,7 +223,7 @@ const createNewMeeting = () => {
                 await peer.addIceCandidate(new RTCIceCandidate(signal.ice));
             }
         } catch (error) {
-            console.error(" Error handling signal:", error);
+            console.error("Error handling signal:", error);
         }
     };
 
@@ -337,15 +322,12 @@ const createNewMeeting = () => {
             roomId: meetingCode
         };
         
-        console.log("Sending message to room:", meetingCode, messageData);
         socketRef.current.emit('chat-message', messageData);
         setMessage("");
     };
 
     // End call - cleanup everything
     const endCall = () => {
-        console.log(" Ending call in room:", meetingCode);
-        
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
         }
@@ -571,7 +553,7 @@ const createNewMeeting = () => {
                                 maxWidth: '1200px',
                                 margin: '0 auto'
                             }}>
-                                {remoteUsers.map(([userId, stream], index) => (
+                                {remoteUsers.map(([userId, stream]) => (
                                     <div key={userId} style={{
                                         position: 'relative',
                                         backgroundColor: '#2a2a2a',
@@ -581,14 +563,6 @@ const createNewMeeting = () => {
                                         minHeight: '300px'
                                     }}>
                                         <video 
-                                            ref={ref => {
-                                                if (ref) {
-                                                    remoteVideoRefs.current[userId] = ref;
-                                                    if (stream) {
-                                                        ref.srcObject = stream;
-                                                    }
-                                                }
-                                            }}
                                             autoPlay
                                             playsInline
                                             style={{ 
@@ -608,7 +582,7 @@ const createNewMeeting = () => {
                                             borderRadius: '16px',
                                             fontSize: '12px'
                                         }}>
-                                            Participant {index + 1}
+                                            Participant
                                         </div>
                                     </div>
                                 ))}
