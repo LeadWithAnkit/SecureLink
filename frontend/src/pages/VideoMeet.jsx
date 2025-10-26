@@ -32,6 +32,7 @@ export default function VideoMeetComponent() {
     
     const socketRef = useRef();
     const localVideoRef = useRef();
+    const remoteVideoRefs = useRef({});
     
     const [username, setUsername] = useState("");
     const [meetingCode, setMeetingCode] = useState(meetingId || "");
@@ -166,14 +167,20 @@ export default function VideoMeetComponent() {
             peer.addTrack(track, stream);
         });
 
-        // Handle incoming remote stream
+        // Handle incoming remote stream - FIXED
         peer.ontrack = (event) => {
-            console.log("Received remote track from:", userId);
+            console.log("Received remote track from:", userId, event.streams);
             if (event.streams && event.streams[0]) {
+                const remoteStream = event.streams[0];
                 setRemoteStreams(prev => ({
                     ...prev,
-                    [userId]: event.streams[0]
+                    [userId]: remoteStream
                 }));
+                
+                // Immediately update the video element
+                if (remoteVideoRefs.current[userId]) {
+                    remoteVideoRefs.current[userId].srcObject = remoteStream;
+                }
             }
         };
 
@@ -182,6 +189,15 @@ export default function VideoMeetComponent() {
             if (event.candidate) {
                 socketRef.current.emit('signal', userId, JSON.stringify({ ice: event.candidate }), meetingCode);
             }
+        };
+
+        // Connection monitoring
+        peer.onconnectionstatechange = () => {
+            console.log(`Connection with ${userId}: ${peer.connectionState}`);
+        };
+
+        peer.oniceconnectionstatechange = () => {
+            console.log(`ICE with ${userId}: ${peer.iceConnectionState}`);
         };
 
         peersRef.current[userId] = peer;
@@ -362,6 +378,15 @@ export default function VideoMeetComponent() {
             localVideoRef.current.srcObject = localStream;
         }
     }, [localStream]);
+
+    // Update remote video elements when streams change
+    useEffect(() => {
+        remoteUsers.forEach(([userId, stream]) => {
+            if (remoteVideoRefs.current[userId] && stream) {
+                remoteVideoRefs.current[userId].srcObject = stream;
+            }
+        });
+    }, [remoteStreams]);
 
     if (askForJoin) {
         return (
@@ -563,6 +588,7 @@ export default function VideoMeetComponent() {
                                         minHeight: '300px'
                                     }}>
                                         <video 
+                                            ref={ref => remoteVideoRefs.current[userId] = ref}
                                             autoPlay
                                             playsInline
                                             style={{ 
