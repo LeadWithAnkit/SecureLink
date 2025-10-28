@@ -455,7 +455,7 @@ export default function VideoMeetComponent() {
                             Join Meeting
                         </Button>
                         
-                        <Button 
+                        {/* <Button 
                             variant="outlined" 
                             onClick={createNewMeeting}
                             size="large"
@@ -466,7 +466,7 @@ export default function VideoMeetComponent() {
                             }}
                         >
                             Create New Meeting
-                        </Button>
+                        </Button> */}
                     </div>
                     
                     {meetingCode && (
